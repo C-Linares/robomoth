@@ -33,6 +33,7 @@ mutate(date_time = ymd_hms(str_extract(Filename, "\\d{8}_\\d{6}"), tz = "America
 #site
 
 robo2021_raw$site<-str_extract(robo2021_raw$Filename, "^[A-Za-z]{3,4}\\d{2}")
+unique(robo2021_raw$site)
 
 # Count number of NA values in the column
 num_na <- sum(is.na(robo2021_raw[["site"]]))
@@ -45,8 +46,29 @@ rows_with_na <- which(is.na(robo2021_raw[["site"]]))
 
 robo2021_v1 <- robo2021_raw[!is.na(robo2021_raw$site), ] 
 
+# hrs
+
+robo2021_v1$hrs<- hour(robo2021_v1$date_time)
+
+
+# noche
+robo2021_v1$noche <-
+  if_else(robo2021_v1$hrs < 9, # if it is less than 9 put the date of the previous day
+          true =  (date(robo2021_v1$date_time) - ddays(1)),
+          false = date(robo2021_v1$date_time))
+
+#treatment 
+
+litsites<-c("IRON01","IRON03","IRON05","LON01","LON03")
+
+robo2021_v1$treatmt<-ifelse(robo2021_v1$site %in% litsites , "lit", "dark") # this makes a treatment variable.
+
+robo2021_v1$trmt_bin<- ifelse(robo2021_v1$treatmt== "lit", 1, 0)
 
 
 # explore -----------------------------------------------------------------
 
-
+p1<- ggplot(robo2021_v1, aes(x=hr,y=n))+
+  geom_col()+
+  facet_grid(.~ treatmt)+
+  theme_classic()
