@@ -65,10 +65,35 @@ robo2021_v1$treatmt<-ifelse(robo2021_v1$site %in% litsites , "lit", "dark") # th
 
 robo2021_v1$trmt_bin<- ifelse(robo2021_v1$treatmt== "lit", 1, 0)
 
+# combine sppaccp and ~spp into a new column. 
+
+robo2021_v1$sppall<- paste(robo2021_v1$SppAccp,robo2021_v1$X.Spp)
+
+
 
 # explore -----------------------------------------------------------------
 
-p1<- ggplot(robo2021_v1, aes(x=hr,y=n))+
+# counts by species
+
+unique(robo2021_v1$SppAccp)
+
+
+# species 
+robo.mat <- robo2021_v1 %>%
+  group_by(site, SppAccp, ) %>% # I don't include year because it is a single year
+  count(SppAccp, source, .drop = FALSE) %>%  #  we might have to include the arument .drop=false to count the NAs and the zeros
+  pivot_wider(names_from =source, values_from = n) %>%
+  ungroup()
+
+robo.mat2 <- robo2021_v1 %>%
+  group_by(site, SppAccp ) %>% # I don't include year because it is a single year
+  count(SppAccp, source, .drop = FALSE) %>%  #  we might have to include the arument .drop=false to count the NAs and the zeros
+  pivot_wider(names_from =c(source), values_from = n) %>%
+  ungroup()
+
+
+p1<- ggplot(robo.mat, aes(x=SppAccp,y=n))+
   geom_col()+
-  facet_grid(.~ treatmt)+
+  # facet_grid(.~ source)+
   theme_classic()
+p1
