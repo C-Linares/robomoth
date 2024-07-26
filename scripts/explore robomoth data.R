@@ -23,6 +23,13 @@ robo2021_raw<-read.csv('datasets/robo2021.csv',check.names = T)
 
 colSums(is.na(robo2021_raw)) # several NAs
 
+#load kpro data
+
+
+
+
+# data prep ----------------------------------------------------------------
+
 
 # time
  

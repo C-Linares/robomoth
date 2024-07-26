@@ -13,4 +13,17 @@ I have realized that a good way to analyze the data is to take in consideration 
 
 I created a database for Robomoths deployed with SM4 in 2021. I want to compare the number of species and number of calls detected between Sonobat versions.
 
-There is an error with the sonobatv4.4.5 that makes the data move and show in column where it does not belong.
+There is an error with the sonobatv4.4.5 that makes the data move and show in column where it does not belong.\
+\
+
+------------------------------------------------------------------------
+
+07/24/2024
+
+we changed to kpro for bat idetification software in 2024.
+
+------------------------------------------------------------------------
+
+07/25/2024
+
+I started counting buzzes at sites. It seems like there's some problems with the recordings. The sound of the robo-moth masks sometimes the calls
