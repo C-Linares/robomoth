@@ -27,3 +27,15 @@ we changed to kpro for bat idetification software in 2024.
 07/25/2024
 
 I started counting buzzes at sites. It seems like there's some problems with the recordings. The sound of the robo-moth masks sometimes the calls
+
+------------------------------------------------------------------------
+
+08/6/2024
+
+I realized that kpro has trouble reading the time from the file name when the recording comes from a robomoth. the time sometimes is ends with a T and others not.
+
+```         
+"20220805_002311.WAV"  "20220714_004620T.WAV"
+```
+
+This creates trouble for kpro and I guess sonobat too for reading the time and displaying it correctly. I am fixing that today.
