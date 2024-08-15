@@ -141,20 +141,73 @@ summary(c_robo)
 
   
   
-  
+unique(c_robo$site)
   
 
 #treatment 
 
 litsites<-c("IRON01","IRON03","IRON05","LON01","LON03")
+litsites<- tolower(litsites)
 
-robo2021_v1$treatmt<-ifelse(robo2021_v1$site %in% litsites , "lit", "dark") # this makes a treatment variable.
+c_robo$treatmt<-ifelse(c_robo$site %in% litsites , "lit", "dark") # this makes a treatment variable.
 
-robo2021_v1$trmt_bin<- ifelse(robo2021_v1$treatmt== "lit", 1, 0)
+c_robo$trmt_bin<- ifelse(c_robo$treatmt== "lit", 1, 0)
 
-# combine sppaccp and ~spp into a new column. 
+summary(c_robo)
 
-robo2021_v1$sppall<- paste(robo2021_v1$SppAccp,robo2021_v1$X.Spp)
+table(c_robo$sp,c_robo$treatmt)
+
+
+# year 
+
+c_robo$yr<- year(c_robo$date_time)
+
+summary(c_robo)
+
+
+
+# predictors --------------------------------------------------------------
+
+
+#elevation 
+
+elev<-read.csv('datasets/elevation/elevation.csv', header = T)
+elev<-elev %>% rename("site" = "name")
+elev$site <-tolower(elev$site)
+#Use gsub to replace 'viz' with 'vizc' in the 'site' column of df1
+elev$site <- gsub("viz(\\d{2})", "vizc\\1", elev$site)
+
+# l.illum 
+
+moon<-read.csv('datasets/moon/moon_pred.csv')
+moon$date<- as_date(moon$date)
+moon.adj<-moon %>% mutate(
+  phase = ifelse(above_horizon==FALSE,0,phase),
+  fraction= ifelse(above_horizon==FALSE,0,fraction),
+  l.illum= ifelse(above_horizon==FALSE,0,l.illum)
+)
+
+
+# percent riparian 
+ndvi<-read.csv('datasets/ndvi/NDVI_of_rip2021.csv', header = T)
+ndvi<- ndvi %>% dplyr::select(-c("ele", "time", "magvar", "geoidheigh", "dgpsid") ) # remove unncessary cols
+ndvi<-ndvi %>% rename("site" = "name")
+ndvi<-ndvi %>% rename("ndvi_mean" = "X_mean")
+ndvi$site<-tolower(ndvi$site)
+#Use gsub to replace 'viz' with 'vizc' in the 'site' column of df1
+ndvi$site <- gsub("viz(\\d{2})", "vizc\\1", ndvi$site)
+# 
+
+# weather
+
+weather<-read.csv('datasets/weather/nigh_averages.csv', header = T) #load nightly averages
+weather$date<-as_date(weather$date)
+
+
+
+# merge -------------------------------------------------------------------
+
+
 
 
 
@@ -222,3 +275,13 @@ p1
 # [9] scales_1.3.0      fansi_1.0.6       grid_4.4.1        munsell_0.5.1     tzdb_0.4.0        lifecycle_1.0.4   compiler_4.4.1    fs_1.6.4         
 # [17] timechange_0.3.0  pkgconfig_2.0.3   rstudioapi_0.16.0 R6_2.5.1          tidyselect_1.2.1  utf8_1.2.4        pillar_1.9.0      tools_4.4.1      
 # [25] withr_3.0.0       gtable_0.3.5  
+# 
+# 
+# 
+# 
+
+# trash -------------------------------------------------------------------
+
+# combine sppaccp and ~spp into a new column. 
+
+robo2021_v1$sppall<- paste(robo2021_v1$SppAccp,robo2021_v1$X.Spp)
