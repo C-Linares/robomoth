@@ -73,7 +73,7 @@ num_na <- sum(is.na(robo2021_raw[["site"]]))
 rows_with_na <- which(is.na(robo2021_raw[["site"]]))
 
 # remove NAs 
-# this NA could be due to errors while reading the files.
+# this NA could be due to errors while reading the files. so we filtered them out.
 
 robo2021_v1 <- robo2021_raw[!is.na(robo2021_raw$site), ] 
 
@@ -164,6 +164,53 @@ c_robo$yr<- year(c_robo$date_time)
 
 summary(c_robo)
 
+#make all sp the same
+  #currently the sp names are mixed between 4 code and 6 code letter. 
+
+# Create a named vector for mapping 4-letter codes to 6-letter codes
+code_map <- c(
+  "Anpa" = "ANTPAL",
+  "Lano" = "LASNOC",
+  "Mylu" = "MYOLUC",  # Add more mappings as needed
+  "Myvo" = "MYOVOL",
+  "Laci" = "LASCIN",
+  "Myth" = "MYOTHY",
+  "Epfu" = "EPTFUS",
+  "Myci" = "MYOCIL",
+  "Myev" = "MYOEVO",
+  "Myca" = "MYOCAL",
+  "NoID" = "NOID",
+  "Noise" = "NOISE",
+  "PARHES" = "PARHES",
+  "MYOTHY" = "MYOTHY",
+  "MYOYUM" = "MYOYUM",
+  "EUDMAC" = "EUDMAC"
+)
+
+c_robo <- c_robo %>%
+  mutate(sp = recode(sp, !!!code_map))
+
+# sumarize it by day. 
+
+# make noche data
+c_robo <- c_robo %>%
+  mutate(
+    date = date(date_time),
+    hr = hour(date_time)
+  )
+
+c_robo$noche <-
+  if_else(c_robo$hr < 9, # if it is less than 9 put the date of the previous day
+          true =  (date(c_robo$date) - ddays(1)),
+          false = date(c_robo$date))
+
+c_robo
+
+c_sumry <- c_robo %>% 
+  group_by(noche, sp, site,yr) %>%  # here we sumarize the observations by day. 
+  summarise(n = n(), .groups = 'drop') 
+
+summary(c_sumry)
 
 
 # predictors --------------------------------------------------------------
@@ -202,47 +249,36 @@ ndvi$site <- gsub("viz(\\d{2})", "vizc\\1", ndvi$site)
 
 weather<-read.csv('datasets/weather/nigh_averages.csv', header = T) #load nightly averages
 weather$date<-as_date(weather$date)
+colnames(weather)[1]<-"noche"  # make data as noche so we can join with the data. 
 
 
 
 # merge -------------------------------------------------------------------
 
 
+c_sumry<-left_join(c_sumry, elev, by="site" )
+c_sumry<- left_join(c_sumry, ndvi, by = "site") 
+c_sumry<-   c_sumry %>% select(-c( "time", "buff_area.x", "elev_min", "elev_max","X_min","X_max", "buff_area.y","ndvi_mean"))
+c_sumry<- left_join(c_sumry, weather, by="noche")
+summary(c_sumry)
 
-
+# c_sumry <- c_sumry %>% filter(!sp %in% c("", "", "NOISE")) # I think I don't want to filter shit
 
 # explore -----------------------------------------------------------------
 
 # counts by species
 
-unique(robo2021_v1$SppAccp)
+table(c_sumry$sp) # do we have enough for sp...
 
 
-# species 
-robo.mat <- robo2021_v1 %>%
-  group_by(site, SppAccp, ) %>% # I don't include year because it is a single year
-  count(SppAccp, source, .drop = FALSE) %>%  #  we might have to include the arument .drop=false to count the NAs and the zeros
-  pivot_wider(names_from =source, values_from = n) %>%
-  ungroup()
+# we write the table to load it into the modeling script 
 
-robo.mat2 <- robo2021_v1 %>%
-  group_by(site, SppAccp ) %>% # I don't include year because it is a single year
-  count(SppAccp, source, .drop = FALSE) %>%  #  we might have to include the arument .drop=false to count the NAs and the zeros
-  pivot_wider(names_from =c(source), values_from = n) %>%
-  ungroup()
-
-
-p1<- ggplot(robo.mat, aes(x=SppAccp,y=n))+
-  geom_col()+
-  # facet_grid(.~ source)+
-  theme_classic()
-p1
+write.csv(c_sumry, file = 'datasets/for_glmm/c_sumry.csv', row.names = F)
 
 
 
 
-
-
+# save env
 
 
 
@@ -283,5 +319,5 @@ p1
 # trash -------------------------------------------------------------------
 
 # combine sppaccp and ~spp into a new column. 
-
-robo2021_v1$sppall<- paste(robo2021_v1$SppAccp,robo2021_v1$X.Spp)
+# 
+# robo2021_v1$sppall<- paste(robo2021_v1$SppAccp,robo2021_v1$X.Spp)

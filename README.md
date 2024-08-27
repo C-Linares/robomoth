@@ -39,3 +39,18 @@ I realized that kpro has trouble reading the time from the file name when the re
 ```
 
 This creates trouble for kpro and I guess sonobat too for reading the time and displaying it correctly. I am fixing that today.
+
+------------------------------------------------------------------------
+
+08/27/2024
+
+I created the object c_sumry but has the daily data for bats. I am realizing maybe doing daily is not the best idea. because we have fewer monitoring nights witht the robomoths.
+
+look at this table with all the summarized by day. There's not much there.
+
+``` r
+table(c_sumry$sp) # do we have enough for sp...
+
+       ANTPAL CORTOW EPTFUS EUDMAC LASCIN LASNOC MYOCAL MYOCIL MYOEVO MYOLUC MYOTHY MYOVOL MYOYUM   NOID  NOISE PARHES 
+    15     55     41     75      1     82     82     53     77     69     83     24     83      7     79     87     60 
+```
