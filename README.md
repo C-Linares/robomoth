@@ -54,3 +54,21 @@ table(c_sumry$sp) # do we have enough for sp...
        ANTPAL CORTOW EPTFUS EUDMAC LASCIN LASNOC MYOCAL MYOCIL MYOEVO MYOLUC MYOTHY MYOVOL MYOYUM   NOID  NOISE PARHES 
     15     55     41     75      1     82     82     53     77     69     83     24     83      7     79     87     60 
 ```
+
+------------------------------------------------------------------------
+
+8/28/2024
+
+-   I loaded 2023 data. but needs to be cleaned and merge.
+
+-   I realized I have data for 2021 that has been ID-ed with Kaleidoscope. I just need to get it and merge it with the rest. Currently we have 2021 with sonobat and 2022-2023 with Kaleidoscope.
+
+-   seems like Iron03 is missing from 2023 data.
+
+-   there is a problem with the robomoth data for 2023 it seems like there is just data for 6 sites... I wonder what is going on. I am worried all the other sites have no data...
+
+-   ok I figure out what is the problem. Most of the robomoth data got copied into the folder
+
+    -   Z:\PioneerLights\_2023\robomoth\_2023_all
+
+    -   while in the folder:Z:\PioneerLights\_2023\robomoth there are some files that are not present in the robomoth_2023_all.

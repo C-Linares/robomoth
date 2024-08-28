@@ -48,7 +48,7 @@ library(magrittr)
 
 robo2021_raw<-read.csv('datasets/robo2021.csv',check.names = T) # this comes from sonobat need to make it kpro 
 robo2022_raw<-read.csv('datasets/robo2022_kpr.csv') # product of kpro ran throuhg all data
-
+robo2023_raw<-read.csv('datasets/robo2023_kpro_.csv') # id.csv from all data run together. 
 
 
 
@@ -131,6 +131,41 @@ names(robo2022_select)[names(robo2022_select) == "AUTO.ID."] <- "sp"
 
 summary(robo2022_select)
 
+
+
+# 2023 raw data -----------------------------------------------------------
+
+# site
+robo2023_raw$site<-str_extract(robo2023_raw$FOLDER, "[A-Za-z]{3,4}\\d{2}") # there are some NAs probably because some come from a site with no site assigned 
+unique(robo2023_raw$site)
+# fix a name
+robo2022_raw$site = ifelse(robo2022_raw$site %in% "Iron02","iron02", robo2022_raw$site)
+unique(robo2022_raw$site) # site labels
+
+
+# date 
+
+robo2022_raw$DATE<-lubridate::ymd(robo2022_raw$DATE)
+sum(is.na(robo2022_raw$DATE)) # check for NAs. 
+
+#time
+
+# Extract the time component and create a new column
+robo2022_raw <- robo2022_raw %>%
+  mutate(date_time_str = str_extract(IN.FILE, "\\d{8}_\\d{6}")) %>%
+  mutate(date_time = as.POSIXct(date_time_str, format = "%Y%m%d_%H%M%S"))
+
+
+# slect columns to combine
+robo2022_select<-robo2022_raw %>% select(AUTO.ID.,date_time,site)
+names(robo2022_select)[names(robo2022_select) == "AUTO.ID."] <- "sp"
+
+summary(robo2022_select)
+
+
+
+
+
 # merge datasets ------------------------------------------------------------
 
 # here we combine the data
@@ -151,7 +186,7 @@ litsites<- tolower(litsites)
 
 c_robo$treatmt<-ifelse(c_robo$site %in% litsites , "lit", "dark") # this makes a treatment variable.
 
-c_robo$trmt_bin<- ifelse(c_robo$treatmt== "lit", 1, 0)
+c_robo$trmt_bin<- ifelse(c_robo$treatmt== "lit", 1, -1)
 
 summary(c_robo)
 
@@ -233,7 +268,7 @@ moon.adj<-moon %>% mutate(
   fraction= ifelse(above_horizon==FALSE,0,fraction),
   l.illum= ifelse(above_horizon==FALSE,0,l.illum)
 )
-
+colnames(moon.adj)[1]<-"noche" # make date into noche so we can merge them. 
 
 # percent riparian 
 ndvi<-read.csv('datasets/ndvi/NDVI_of_rip2021.csv', header = T)
@@ -258,17 +293,18 @@ colnames(weather)[1]<-"noche"  # make data as noche so we can join with the data
 
 c_sumry<-left_join(c_sumry, elev, by="site" )
 c_sumry<- left_join(c_sumry, ndvi, by = "site") 
-c_sumry<-   c_sumry %>% select(-c( "time", "buff_area.x", "elev_min", "elev_max","X_min","X_max", "buff_area.y","ndvi_mean"))
 c_sumry<- left_join(c_sumry, weather, by="noche")
+c_sumry<-left_join(c_sumry, moon.adj, by="noche")
+c_sumry<-   c_sumry %>% select(-c( "time", "buff_area.x", "elev_min", "elev_max","X_min","X_max", "buff_area.y","ndvi_mean", "lat","lon","altitude", "rise", "set", "phase", "fraction", "parallacticAngle","angle"))
+
 summary(c_sumry)
 
-# c_sumry <- c_sumry %>% filter(!sp %in% c("", "", "NOISE")) # I think I don't want to filter shit
+# c_sumry <- c_sumry %>% filter(!sp %in% c("", "", "NOISE")) # I think I don't want to filter 
 
 # explore -----------------------------------------------------------------
 
 # counts by species
 
-table(c_sumry$sp) # do we have enough for sp...
 
 
 # we write the table to load it into the modeling script 
@@ -280,6 +316,7 @@ write.csv(c_sumry, file = 'datasets/for_glmm/c_sumry.csv', row.names = F)
 
 # save env
 
+save.image(file = "wenv/explore_robomoth_data.R")
 
 
 # session info ------------------------------------------------------------
