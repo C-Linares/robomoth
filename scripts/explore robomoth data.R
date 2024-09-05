@@ -26,10 +26,10 @@
 
 # outputs ----------------------
 
-#
-# this should be a database ready to analyze with . 
+# robo.ai<- acoustic index/ number of minutes of activity by night. 
+# c_sumry<- counts of bat calls per sp and night. 
+# 
 
-# libraries
 
 
 # library -----------------------------------------------------------------
@@ -90,11 +90,11 @@ robo2021_v1$noche <-
 
 
 
-robo2021_select<-robo2021_v1 %>% select(SppAccp,date_time,site)
+robo2021_select<-robo2021_v1 %>% select(SppAccp,date_time,site) # select cols to merge with other files.
 names(robo2021_select)[names(robo2021_select) == "SppAccp"] <- "sp"
 robo2021_select$site<-tolower(robo2021_select$site)
 
-summary(robo2021_select)
+summary(robo2021_select) # check data 
 
 
 # 2022 cleanup ------------------------------------------------------------
@@ -127,7 +127,7 @@ robo2022_raw <- robo2022_raw %>%
 
 # slect columns to combine
 robo2022_select<-robo2022_raw %>% select(AUTO.ID.,date_time,site)
-names(robo2022_select)[names(robo2022_select) == "AUTO.ID."] <- "sp"
+names(robo2022_select)[names(robo2022_select) == "AUTO.ID."] <- "sp" # change col name  to sp
 
 summary(robo2022_select)
 
@@ -139,14 +139,12 @@ summary(robo2022_select)
 robo2023_raw$site<-str_extract(robo2023_raw$FOLDER, "[A-Za-z]{3,4}\\d{2}") # there are some NAs probably because some come from a site with no site assigned 
 unique(robo2023_raw$site)
 # fix a name
-robo2022_raw$site = ifelse(robo2022_raw$site %in% "Iron02","iron02", robo2022_raw$site)
-unique(robo2022_raw$site) # site labels
 
 
 # date 
 
-robo2022_raw$DATE<-lubridate::ymd(robo2022_raw$DATE)
-sum(is.na(robo2022_raw$DATE)) # check for NAs. 
+robo2023_raw$DATE<-lubridate::ymd(robo2023_raw$DATE)
+sum(is.na(robo2023_raw$DATE)) # check for NAs. 
 
 #time
 
@@ -239,13 +237,47 @@ c_robo$noche <-
           true =  (date(c_robo$date) - ddays(1)),
           false = date(c_robo$date))
 
-c_robo
+head(c_robo)
 
 c_sumry <- c_robo %>% 
   group_by(noche, sp, site,yr) %>%  # here we sumarize the observations by day. 
   summarise(n = n(), .groups = 'drop') 
 
 summary(c_sumry)
+
+
+
+# Miller AI ---------------------------------------------------------------
+
+
+# minutes activity 
+# in here we calculate the minutes of activity Miller 2001 paper. 
+
+c_robo$rmins<-round(c_robo$date_time, units="mins") #rounds to the nearest min
+
+# robo.miller<-c_robo %>% #min of activity 
+#   group_by(site, sp, noche, rmins) %>% 
+#   summarize(activity_min= n()) %>%  #calculate the num of min activity
+#   ungroup()
+
+# modified version of miller as we need to drop the double counts. 
+robo.miller<- c_robo %>%
+  # Extract the relevant columns and round to minute level
+  mutate(rmins = round(date_time, units = "mins")) %>%
+  # Remove duplicate entries for the same site, date, and minute
+  distinct(site, sp, noche, rmins, .keep_all = TRUE) %>%
+  # Group by site, date, and minute
+  group_by(site,sp, noche, rmins) %>%
+  # Summarize to count the number of unique minutes
+  summarize(activity_min = n_distinct(rmins), .groups = 'drop')
+
+robo.miller.day <- robo.miller %>% # number of minutes active  by night. 
+  group_by(site, noche, sp) %>%
+  summarize(activity_min = sum(activity_min))
+
+head(robo.miller.day)
+summary(robo.miller.day)
+
 
 
 # predictors --------------------------------------------------------------
@@ -301,15 +333,46 @@ summary(c_sumry)
 
 # c_sumry <- c_sumry %>% filter(!sp %in% c("", "", "NOISE")) # I think I don't want to filter 
 
-# explore -----------------------------------------------------------------
 
-# counts by species
+#merge with miller
+
+robo.ai<-left_join(robo.miller.day, elev, by="site")
+robo.ai<- left_join(robo.ai, ndvi, by = "site") 
+robo.ai<- left_join(robo.ai, weather, by="noche")
+robo.ai<-left_join(robo.ai, moon.adj, by="noche")
+robo.ai <-   robo.ai %>% select(
+  -c(
+    "time",
+    "buff_area.x",
+    "elev_min",
+    "elev_max",
+    "X_min",
+    "X_max",
+    "buff_area.y",
+    "buff_rip",
+    "ndvi_mean",
+    "lat",
+    "lon",
+    "altitude",
+    "rise",
+    "set",
+    "phase",
+    "fraction",
+    "parallacticAngle",
+    "angle"
+  )
+)
+
+summary(robo.ai)
 
 
 
 # we write the table to load it into the modeling script 
 
-write.csv(c_sumry, file = 'datasets/for_glmm/c_sumry.csv', row.names = F)
+write_csv(c_sumry, file = 'datasets/for_glmm/c_sumry.csv', row.names = F) # count by night
+write_csv(robo.ai, file = 'datasets/for_glmm/robo.ai.csv') # ai by night
+
+
 
 
 
@@ -317,6 +380,18 @@ write.csv(c_sumry, file = 'datasets/for_glmm/c_sumry.csv', row.names = F)
 # save env
 
 save.image(file = "wenv/explore_robomoth_data.R")
+
+
+# explore -----------------------------------------------------------------
+
+
+hist(c_sumry$n)
+hist(robo.ai$activity_min)
+
+qplot(data = robo.ai, x=robo.ai$noche, y=robo.ai$activity_min)
+
+table(c_sumry$sp)
+table(robo.ai$sp)
 
 
 # session info ------------------------------------------------------------
