@@ -132,7 +132,7 @@ I also believe that there might be an error with the plot code. I might be predi
 -   I reworked the activity index because it was not removing lines with the same site, sp, date, so when summarized the result was the same as counting calls.
 
 -   I ran the model using the activity index and the results are similar to what the whole calls indicate. in the global model light is not significat, but in when we plot the random effects we see the effects of light on certain sp\
-    *I realized I did not include yr in the model.* \
+    *I realized I did not include yr in the model.*\
 
 ```{r}
 m2.2nb <- glmmTMB(
@@ -183,3 +183,16 @@ Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’
 the plot looks like this, mostly looks like bats attacked more robomoths in lit areas.
 
 ![](figs/trmt_ai_raneff_v1.png)
+
+------------------------------------------------------------------------
+
+2/6/2025
+
+We need to reanalyze this data using the sonobat buzz detector tool. I need to \
+organize the 2021 data and put it all in the same folder.\
+
+2022 I don't know the status. I ams sure it has been ran through all the buzz detctor
+
+2023 same, it has been run but not sure if it has been vetted.
+
+I added the creaters data. We need the moon data.

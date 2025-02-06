@@ -3,7 +3,7 @@
 ##
 ## Script name: glmm_decoys_v1
 ##
-## Purpose of script: running modles for the robomoth and speakers data collected in the pioneers light project. 
+## Purpose of script: running models for the robomoth and speakers data collected in the pioneers light project. 
 ##
 ## Author: Carlos Linares
 ##
@@ -616,6 +616,32 @@ p5<-ggplot( abunddf, aes( x = trmt, y = pred, colour = sp, group = sp, shape = s
   ggtitle("Acousti index robomoth 2021-2023")
 p5
 
+p5.1 <- ggplot(abunddf, aes(x = trmt, y = pred, colour = sp, group = sp, shape = sp)) +  
+  theme_classic(base_size = 16) +  # Increase base size for larger text
+  scale_color_viridis_d(direction = 1, option = "A") +  # Keep the color scale
+  scale_shape_manual(values = 1:14) +  # Customize shapes for each 'sp'
+  ylab("Bat calls") +
+  xlab("Treatment") +
+  geom_point(size = 3, color = "white") +  # Set point color to white
+  geom_line(color = "white") +  # Set line color to white
+  ggtitle("") +
+  theme(
+    plot.background = element_rect(fill = "black"),  # Set plot background to black
+    panel.background = element_rect(fill = "black"),  # Set panel background to black
+    legend.background = element_rect(fill = "black"),  # Set legend background to black
+    legend.text = element_text(color = "white"),  # Set legend text color to white
+    legend.title = element_text(color = "white"),  # Set legend title color to white
+    axis.text = element_text(color = "white"),  # Set axis text color to white
+    axis.title = element_text(color = "white"),  # Set axis title color to white
+    plot.title = element_text(color = "white"),  # Set plot title color to white
+    axis.ticks = element_line(color = "white"),  # Set axis ticks color to white
+    panel.grid.major = element_line(color = "black"),  # Optional: set grid lines color
+    panel.grid.minor = element_line(color = "black")   # Optional: set minor grid lines color
+  )
+
+p5.1
+
+
 p5 <- ggplot(abunddf, aes(x = trmt, y = pred, colour = sp, group = sp, shape = sp)) +  
   theme_classic(base_size = 12) +
   scale_color_viridis_d(direction = -1, option = "A") +
@@ -631,7 +657,7 @@ p5
 
 
 
-ggsave(filename = "trmt_ai_raneff_v1.tiff",plot = p5, device = "tiff", path = 'figs/' )
+ggsave(filename = "trmt_ai_raneff_v1.tiff",plot = p5.1, device = "tiff", path = 'figs/' , height =7 , width = 10, units = "in")
 
 
 # save env ----------------------------------------------------------------

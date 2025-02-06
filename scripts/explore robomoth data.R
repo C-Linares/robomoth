@@ -1,5 +1,5 @@
 
-# 
+#========================================================================================================= 
 
 # This script explores the data for the robomoths deployed with sm4 in 2021.
 # 
@@ -13,7 +13,7 @@
 # 
 # Email: carlosgarcialina@u.boisestate.edu
 # 
-# ---------------------------
+#========================================================================================================= 
 #   
 #   Notes:  
 # sessionInfo() at end of script
@@ -34,12 +34,20 @@
 
 # library -----------------------------------------------------------------
 
-library(tidyverse)
-library(stringr)
-library(lubridate)
-library(tidyverse)
-library(data.table)
-library(magrittr)
+if(!require("pacman"))
+  install.packages("pacman")
+
+# Use pacman to load libraries
+pacman::p_load(dplyr, lubridate, stringr, tidyr, ggplot2, data.table, magrittr, readr)
+
+#load environment 
+#last worked 09/03/2024
+load(file = "working_env/glmm_v1.RData")
+
+
+#load past environments
+
+load("wenv/explore_robomoth_data.R")
 
 
 # load data and clean up ---------------------------------------------------------------
@@ -291,7 +299,9 @@ elev$site <-tolower(elev$site)
 #Use gsub to replace 'viz' with 'vizc' in the 'site' column of df1
 elev$site <- gsub("viz(\\d{2})", "vizc\\1", elev$site)
 
-# l.illum 
+# l.illum
+
+# needs to be updated with the kaba recomendation. 
 
 moon<-read.csv('datasets/moon/moon_pred.csv')
 moon$date<- as_date(moon$date)
@@ -318,7 +328,9 @@ weather<-read.csv('datasets/weather/nigh_averages.csv', header = T) #load nightl
 weather$date<-as_date(weather$date)
 colnames(weather)[1]<-"noche"  # make data as noche so we can join with the data. 
 
+# Creaters of the moon weather. 
 
+creaters_night<- read_csv('datasets/weather/creaters/craters_night.csv')
 
 # merge -------------------------------------------------------------------
 
@@ -372,6 +384,15 @@ summary(robo.ai)
 write_csv(c_sumry, file = 'datasets/for_glmm/c_sumry.csv', row.names = F) # count by night
 write_csv(robo.ai, file = 'datasets/for_glmm/robo.ai.csv') # ai by night
 
+# Create a README file with information about the script
+readme_content <- "Carlos Linares, 2/6/2025
+The files:
+c_sumry.csv: is the count of bat calls per species per night.
+robo.ai.csv: is the acoustic index (number of minutes of activity) by night.
+these are the product of the explore robomoth data.R script.
+ "
+# Write the README content to a file
+writeLines(readme_content, "datasets/for_glmm/README.txt")
 
 
 
